@@ -8,6 +8,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyProduct("PrinterIpTool")]
 [assembly: AssemblyCopyright("© 2026 任我行电脑工作室 · by 任我行电脑工作室")]
 [assembly: AssemblyTrademark("任我行电脑工作室")]
-[assembly: AssemblyVersion("1.4.4.0")]
-[assembly: AssemblyFileVersion("1.4.4.0")]
+[assembly: AssemblyVersion("1.4.5.0")]
+[assembly: AssemblyFileVersion("1.4.5.0")]
 [assembly: ComVisible(false)]

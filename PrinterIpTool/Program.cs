@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Management;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
@@ -181,14 +183,40 @@ namespace PrinterIpTool
         private TextBox txtNewIp, txtLog;
         private PrinterInfo _selected;
 
+        /// <summary>
+        /// 应用图标：优先读 exe 内嵌资源（绿色包只有单个 exe 时也能显示图标），
+        /// 其次读同目录 app.ico，再退回到提取 exe 自身图标。
+        /// </summary>
         private Icon LoadAppIcon()
         {
+            try
+            {
+                Assembly asm = Assembly.GetExecutingAssembly();
+                string[] names = asm.GetManifestResourceNames();
+                foreach (string n in names)
+                {
+                    if (!n.EndsWith(".ico", StringComparison.OrdinalIgnoreCase)) continue;
+                    using (Stream s = asm.GetManifestResourceStream(n))
+                    {
+                        if (s != null) return new Icon(s);
+                    }
+                }
+            }
+            catch { }
+
             try
             {
                 string p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.ico");
                 if (File.Exists(p)) return new Icon(p);
             }
             catch { }
+
+            try
+            {
+                return Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+            }
+            catch { }
+
             return SystemIcons.Application;
         }
         #endregion
