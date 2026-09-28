@@ -14,7 +14,7 @@
 
 【兼容】
   Windows 7 SP1（32/64 位）/ 8 / 8.1 / 10 / 11
-  依赖 .NET Framework 4.0（系统自带，零额外依赖）
+  依赖 .NET Framework 4.8（Win10/11 系统自带；Win7 SP1 需先安装）
 
 【功能】
   1. 打开即自动检查 Print Spooler：显示运行状态与启动类型
