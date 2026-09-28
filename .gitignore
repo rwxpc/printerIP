@@ -1,0 +1,13 @@
+# 编译中间产物
+bin/
+obj/
+*.user
+*.suo
+*.cache
+.vs/
+
+# 工作区记忆 / 本地缓存（不入库）
+.workbuddy/
+
+# 手动复制的旧副本（形如 "xxx - 副本.exe"）
+dist/*- *.exe

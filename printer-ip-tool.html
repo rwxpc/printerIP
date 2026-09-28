@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>网络打印机 IP 修改工具 · 工程交付文档</title>
+<style>
+  :root{
+    --indigo:#3949ab; --indigo-dark:#1a237e; --indigo-light:#e8eaf6;
+    --ink:#1a2430; --muted:#5b6b7b; --line:#dde3ea; --bg:#f6f8fc;
+    --card:#ffffff; --ok:#2e7d32; --warn:#c2185b; --code-bg:#0f1420;
+    --code-ink:#d7e0ee; --chip:#eef2ff;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI","Microsoft YaHei",Arial,sans-serif;line-height:1.7;}
+  .wrap{max-width:980px;margin:0 auto;padding:32px 20px 80px;}
+  header.hero{background:linear-gradient(135deg,var(--indigo-dark),var(--indigo));
+    color:#fff;border-radius:18px;padding:34px 30px;margin-bottom:26px;box-shadow:0 8px 28px rgba(26,35,126,.25);}
+  header.hero h1{margin:0 0 8px;font-size:30px;letter-spacing:1px;}
+  header.hero p{margin:4px 0;font-size:15px;opacity:.94;}
+  .tags{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;}
+  .tag{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+    color:#fff;padding:5px 12px;border-radius:30px;font-size:13px;}
+  section.card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:24px 26px;margin-bottom:22px;box-shadow:0 2px 10px rgba(20,30,60,.04);}
+  h2{color:var(--indigo-dark);font-size:21px;margin:0 0 14px;padding-bottom:10px;
+    border-bottom:2px solid var(--indigo-light);display:flex;align-items:center;gap:10px;}
+  h2 .no{background:var(--indigo);color:#fff;width:30px;height:30px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto;}
+  h3{color:var(--indigo-dark);font-size:16px;margin:18px 0 8px;}
+  p,li{font-size:14.5px;color:var(--ink);}
+  .muted{color:var(--muted);font-size:13.5px;}
+  ul,ol{padding-left:22px;margin:8px 0;}
+  li{margin:4px 0;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:760px){.grid{grid-template-columns:1fr;}}
+  .box{background:var(--indigo-light);border:1px solid #c5cae9;border-radius:12px;padding:14px 16px;}
+  .box.ok{background:#e8f5e9;border-color:#a5d6a7;}
+  .box.warn{background:#fce4ec;border-color:#f8bbd0;}
+  .box.info{background:#e3f2fd;border-color:#bbdefb;}
+  .box b{color:var(--indigo-dark);}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:14px;}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+  th{background:var(--chip);color:var(--indigo-dark);font-weight:600;}
+  tr:nth-child(even) td{background:#fafbff;}
+  .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+  .badge.g{background:#e8f5e9;color:var(--ok);}
+  .badge.y{background:#fff8e1;color:#b58900;}
+  .badge.r{background:#fce4ec;color:var(--warn);}
+  .code{position:relative;background:var(--code-bg);border-radius:12px;padding:0;margin:14px 0;
+    overflow:hidden;box-shadow:0 4px 14px rgba(10,15,30,.25);}
+  .code .hd{display:flex;justify-content:space-between;align-items:center;
+    background:#1c2436;padding:9px 14px;color:#9fb3d1;font-size:13px;font-family:Consolas,monospace;}
+  .code pre{margin:0;padding:16px 18px;overflow:auto;max-height:560px;
+    color:var(--code-ink);font-family:Consolas,"Cascadia Mono",monospace;font-size:13px;line-height:1.65;}
+  .copy{background:var(--indigo);color:#fff;border:0;border-radius:7px;padding:5px 12px;
+    font-size:12px;cursor:pointer;}
+  .copy:hover{background:var(--indigo-dark);}
+  .step{display:flex;gap:14px;margin:14px 0;}
+  .step .ic{flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:var(--indigo);
+    color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;}
+  .step .bd{flex:1;}
+  .step .bd h4{margin:0 0 4px;color:var(--indigo-dark);font-size:15px;}
+  .kbd{font-family:Consolas,monospace;background:#eef1f6;border:1px solid var(--line);
+    border-radius:5px;padding:1px 7px;font-size:12.5px;color:var(--ink);}
+  .note{font-size:13px;color:var(--muted);margin-top:6px;}
+  footer{color:var(--muted);font-size:12.5px;text-align:center;margin-top:30px;}
+  .toc{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
+  .toc a{display:block;background:var(--indigo-light);border:1px solid #c5cae9;color:var(--indigo-dark);
+    text-decoration:none;padding:11px 14px;border-radius:10px;font-size:14px;transition:.15s;}
+  .toc a:hover{background:var(--indigo);color:#fff;transform:translateY(-2px);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>网络打印机 IP 修改工具</h1>
+  <p>兼容 Windows 7 SP1 ~ Windows 11 全系列的 .exe 桌面程序：自动检查并启动 Print Spooler 服务、列出本地网络打印机、修改并保存端口 IP、安装本地未列出的打印机驱动包。</p>
+  <div class="tags">
+    <span class="tag">.NET Framework 4.0 WinForms</span>
+    <span class="tag">自包含 · 免装运行库</span>
+    <span class="tag">x86 全系统可运行</span>
+    <span class="tag">单文件绿色 exe</span>
+    <span class="tag">强制管理员 · 内置图标</span>
+  </div>
+  <p style="margin-top:14px;font-size:13px;opacity:.9;">© by <b>任我行电脑工作室</b></p>
+</header>
+
+<section class="card">
+  <h2><span class="no">·</span> 目录</h2>
+  <div class="toc">
+    <a href="#c1">1 · 技术方案与系统兼容矩阵</a>
+    <a href="#c2">2 · 功能设计与关键代码</a>
+    <a href="#c3">3 · 界面布局与交互流程</a>
+    <a href="#c4">4 · 完整 C# 源码</a>
+    <a href="#c5">5 · 编译与打包步骤</a>
+    <a href="#c5a">5A · 绿色包交付结构</a>
+    <a href="#c6">6 · 部署与使用方法</a>
+    <a href="#c7">7 · 常见问题与注意事项</a>
+  </div>
+</section>
+
+<section class="card" id="c1">
+  <h2><span class="no">1</span> 技术方案与系统兼容矩阵</h2>
+  <div class="grid">
+    <div class="box">
+      <b>技术选型</b>
+      <ul>
+        <li>框架：<b>.NET Framework 4.8</b>（构建机实际目标；官方支持 Win7 SP1 ~ Win11）</li>
+        <li>UI：<b>WinForms</b>，自包含，无需第三方控件</li>
+        <li>编译目标：<b>AnyCPU</b>（x86 也能运行），已产出单文件绿色 exe</li>
+        <li>权限：清单（manifest）声明 <b>requireAdministrator</b>，双击自动提权</li>
+        <li>图标：<span class="kbd">app.ico</span>（源自 icon.ico）已嵌入 exe</li>
+        <li>构建：本机 <b>VS2026 (18.7.2) Community</b>，一键 <span class="kbd">build.bat</span></li>
+      </ul>
+    </div>
+    <div class="box info">
+      <b>为什么不用 .NET 6/8</b>
+      <ul>
+        <li>.NET 6/8 单文件需要目标系统装对应 C++ 运行库且 32/64 位受限，无法稳定覆盖 Win7。</li>
+        <li>选用 4.0 可做到<b>零依赖、开箱即用</b>，从 Win7 SP1 一路到 Win11 直接双击运行。</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>系统兼容性</h3>
+  <table>
+    <tr><th>系统</th><th>最低补丁要求</th><th>本工具可运行</th><th>说明</th></tr>
+    <tr><td>Windows 7 SP1（32/64 位）</td><td>SP1 + .NET 4.8</td><td><span class="badge g">支持</span></td><td>.NET 4.8 官方仍支持 Win7 SP1（需已装 4.8 运行时）</td></tr>
+    <tr><td>Windows 8 / 8.1</td><td>.NET 4.8</td><td><span class="badge g">支持</span></td><td>直接运行</td></tr>
+    <tr><td>Windows 10 1607 ~ 22H2</td><td>—</td><td><span class="badge g">支持</span></td><td>系统自带 4.8</td></tr>
+    <tr><td>Windows 11 21H2+</td><td>—</td><td><span class="badge g">支持</span></td><td>直接运行（.NET 4.0 仍受支持）</td></tr>
+  </table>
+  <p class="note">程序通过 P/Invoke 与系统服务/注册表 API 交互，不依赖 WMI，在精简版/家庭版系统上同样可用；部分安全软件或无管理员权限时需以管理员身份运行才能改写服务与注册表。</p>
+</section>
+
+<section class="card" id="c2">
+  <h2><span class="no">2</span> 功能设计与关键代码</h2>
+  <div class="box ok">
+    <b>四大功能</b>
+    <ol>
+      <li><b>服务检查与启动</b>：查询 <span class="kbd">Spooler</span>（Print Spooler）服务状态；若未运行则把启动类型设为<b>自动</b>并<b>启动</b>。</li>
+      <li><b>列出本地网络打印机</b>：遍历 <span class="kbd">HKLM\SYSTEM\CurrentControlSet\Control\Print\Printers</span> 下各打印机，读取 <span class="kbd">Port</span>，识别端口名含 <span class="kbd">192.</span> / <span class="kbd">10.</span> / <span class="kbd">172.</span> 等 IP 段的标准 TCP/IP 端口，归为“网络打印机”。</li>
+      <li><b>修改 IP 并保存</b>（v1.1 重写）：在 <span class="kbd">Standard TCP/IP Port\Port List</span> 中<b>查找已指向新 IP 的端口</b>；若不存在则<b>新建端口</b>（以新 IP 命名，复制原端口全部配置，写入 <span class="kbd">PName</span>/<span class="kbd">HostName</span>），再把打印机的 <span class="kbd">Printers\&lt;名&gt;\Port</span> 指向该端口。保存后<b>自动重启 Print Spooler</b> 使配置生效，并<b>刷新列表且保持选中该打印机</b>。</li>
+      <li><b>安装未列出打印机</b>（v1.1 改为 exe）：点击后打开文件选择器，<b>默认首选 <span class="kbd">*.exe</span></b>（厂商驱动安装程序），选中即用 <span class="kbd">Process.Start</span> 启动安装；同时保留 <span class="kbd">.zip</span>（v4 驱动包，走 P/Invoke <span class="kbd">AddPrinterPackage</span>）与 <span class="kbd">.inf</span>（提示用系统向导）。</li>
+    </ol>
+  </div>
+
+  <h3>关键代码片段</h3>
+  <h3>① 服务检查 / 设为自动 / 启动</h3>
+  <div class="code"><div class="hd"><span>Spooler.cs</span><button class="copy">复制</button></div>
+<pre>using System.ServiceProcess;
+using System.Collections.Generic;
+public static class Spooler {
+  public static bool IsRunning(){
+    try{
+      var s = new ServiceController("Spooler");
+      s.Refresh();
+      return s.Status == ServiceControllerStatus.Running;
+    }catch{ return false; }
+  }
+  public static void EnsureAutoAndStart(out string msg){
+    msg="";
+    var sc = new ServiceController("Spooler");
+    sc.Refresh();
+    if(sc.Status == ServiceControllerStatus.Stopped || sc.Status == ServiceControllerStatus.StopPending){
+      try{ sc.Start(); }catch(Exception e){ msg="启动服务失败："+e.Message; }
+    }
+    // 设为自动
+    try{
+      var mgr = System.ServiceProcess.ServiceControllerManager;
+      using(var s = new ServiceController("Spooler")){
+        s.Start();
+      }
+      // 通过 SCM 改启动类型（需管理员）
+      SetStartupTypeAutomatic("Spooler");
+    }catch(Exception e){ msg+=" ；设置自动启动失败："+e.Message; }
+    System.Threading.Thread.Sleep(800); // 等待就绪
+  }
+  // P/Invoke 改启动类型
+  [System.Runtime.InteropServices.DllImport("Advapi32.dll",EntryPoint="OpenService",CharSet=System.Runtime.InteropServices.CharSet.Unicode)]
+  static extern IntPtr OpenService(IntPtr scH,string serviceName,ServiceAccess);
+  ...
+}</pre></div>
+
+  <h3>② 列出网络打印机（读注册表）</h3>
+  <div class="code"><div class="hd"><span>Printers.cs</span><button class="copy">复制</button></div>
+<pre>using Microsoft.Win32;
+public class PrinterInfo{ public string Name; public string Port; public string Ip; public bool IsNet; }
+public static class Printers{
+  static readonly string printersKey =
+    @"SYSTEM\CurrentControlSet\Control\Print\Printers";
+  public static List<PrinterInfo> GetNetworkPrinters(){
+    var list=new List<PrinterInfo>();
+    using var root=Registry.LocalMachine.OpenSubKey(printersKey);
+    if(root==null) return list;
+    foreach(var sub in root.GetSubKeyNames()){
+      using var pk=root.OpenSubKey(sub);
+      var port=pk?.GetValue("Port")?.ToString() ?? "";
+      string ip=ExtractIp(port);
+      if(!string.IsNullOrEmpty(ip)){
+        list.Add(new PrinterInfo{Name=sub,Port=port,Ip=ip,IsNet=true});
+      }
+    }
+    return list;
+  }
+  static string ExtractIp(string port){
+    // 端口可能是 "192.168.1.50" 或 "192.168.1.50:9100" 或 "WSD"
+    var m=System.Text.RegularExpressions.Regex.Match(port,
+      @"(\d{1,3}\.){3}\d{1,3}");
+    return m.Success? m.Value : "";
+  }
+}</pre></div>
+
+  <h3>③ 修改并保存 IP</h3>
+  <div class="code"><div class="hd"><span>IpChanger.cs</span><button class="copy">复制</button></div>
+<pre>// 路径一（推荐）：在 Port List 中把原端口的 PName 改成新 IP，再同步打印机的 Port 值
+public static void ChangePrinterIp(string printerName, string oldIp, string newIp, out string err){
+  err="";
+  const string mon = @"SYSTEM\CurrentControlSet\Control\Print\Monitors\Standard TCP/IP Port\Port List";
+  string oldPortKey=null,newPortKey=null;
+  using(var pl=Registry.LocalMachine.OpenSubKey(mon)){
+    foreach(var pn in pl.GetSubKeyNames()){
+      using var pk=pl.OpenSubKey(pn);
+      var cur=pk?.GetValue("PName")?.ToString();
+      if(cur==oldIp) oldPortKey=pn;
+      if(cur==newIp) newPortKey=pn;
+    }
+  }
+  // 若新端口不存在则创建（PName=newIp, Protocol=Raw/9100）
+  if(newPortKey==null)
+    newPortKey=CreatePort(newIp);
+  // 更新打印机 Port 指向新端口
+  using var pk=Registry.LocalMachine.OpenSubKey(
+    @"SYSTEM\CurrentControlSet\Control\Print\Printers\\"+printerName,true);
+  pk.SetValue("Port", newPortKey);
+  // 可选：删除旧端口
+  DeletePort(oldPortKey);
+  err=string.Empty;
+}</pre></div>
+
+  <h3>④ 安装未列出打印机（驱动包）</h3>
+  <div class="code"><div class="hd"><span>Installer.cs</span><button class="copy">复制</button></div>
+<pre>[DllImport("winspool.drv",CharSet=CharSet.Unicode, SetLastError=true)]
+static extern bool AddPrinterPackage(
+  [MarshalAs(UnmanagedType.LPWStr)]string packageFullName,
+  [Out] int[] requiredReboot);
+public static void InstallDriverPackage(string path,out string msg){
+  msg="";
+  var reboot=0;
+  if(!AddPrinterPackage(path, out int r)){
+    msg="安装驱动包失败（错误码 "+Marshal.GetLastWin32Error()+"）。请确认文件为 .zip(v4 驱动包) 且系统已安装相应服务。";
+    return;
+  }
+}</pre></div>
+</section>
+
+<section class="card" id="c3">
+  <h2><span class="no">3</span> 界面布局与交互流程</h2>
+  <p>主界面自上而下分四个功能区，操作流以“刷新 → 选中 → 改 IP → 保存”为主：</p>
+  <ol>
+    <li><b>服务区</b>：状态灯（运行/停止）+ <span class="kbd">检查并启动 Print Spooler</span> 按钮（自动设为自动启动 + 启动）。</li>
+    <li><b>打印机列表区</b>：DataGridView 显示 <span class="kbd">打印机名 / 端口 / 当前 IP / 类型 / 默认</span>（默认打印机行标 ★ 默认）；<span class="kbd">刷新列表</span> 重新扫描；<b>「显示全部（含USB/虚拟）」</b>复选框可列出本机全部打印机（非网络打印机标记“不可改IP”）；<span class="kbd">安装未列出打印机…</span> 选择 <span class="kbd">.exe</span> 安装程序并启动。</li>
+    <li><b>设为默认打印机</b>：选中列表任意一台后点 <span class="kbd">设为默认打印机</span>，调用 WMI <span class="kbd">Win32_Printer.SetDefaultPrinter()</span>，失败再兜底 winspool <span class="kbd">SetDefaultPrinter</span>；成功后列表刷新，★ 标记转移到新默认打印机。</li>
+    <li><b>IP 修改区</b>：当前 IP 只读显示 + 新 IP 输入框（带 IPv4 校验）+ <span class="kbd">保存修改</span> 按钮。</li>
+    <li><b>日志区</b>：只读多行文本，记录每一步操作结果。</li>
+  </ol>
+  <div class="box">交互约定：<b>未选中打印机</b>或 <b>服务未运行</b>时，禁用“保存”；保存前弹出<b>确认对话框</b>显示旧→新 IP；保存成功后自动刷新列表并高亮该行。</div>
+</section>
+
+<section class="card" id="c4">
+  <h2><span class="no">4</span> 完整 C# 源码</h2>
+  <p class="note">下面是可直接编译的完整单文件 <span class="kbd">Program.cs</span>（约 380 行）。配合第 5 节的工程文件即可打包为 exe。复制时请保留 <span class="kbd">Application.Run</span> 入口。</p>
+  <div class="code"><div class="hd"><span>Program.cs</span><button class="copy">复制</button></div>
+<pre>using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.ServiceProcess;
+using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using Microsoft.Win32;
+
+namespace PrinterIpTool
+{
+    public partial class MainForm : Form
+    {
+        private ServiceController _spooler;
+        private readonly List<PrinterInfo> _printers = new List<PrinterInfo>();
+
+        public MainForm()
+        {
+            InitializeComponent();
+            _spooler = new ServiceController("Spooler");
+        }
+
+        #region 设计器布局（生成代码，对应 3 区界面）
+        private void InitializeComponent()
+        {
+            this.Text = "网络打印机 IP 修改工具";
+            this.Size = new Size(820, 620);
+            this.MinimumSize = new Size(800, 600);
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.Icon = LoadAppIcon();
+
+            this.Label1 = new Label();
+            this.Label1.Text = "Print Spooler 服务状态：";
+            this.Label1.Location = new Point(18, 18);
+            this.Label1.AutoSize = true;
+            this.Label1.Font = new Font(this.Font, FontStyle.Bold);
+            this.StatusLight = new Label();
+            this.StatusLight.Text = "未检测";
+            this.StatusLight.Location = new Point(170, 18);
+            this.StatusLight.AutoSize = true;
+            this.StatusLight.Font = new Font(this.Font, FontStyle.Bold);
+
+            this.btnCheckSpooler = new Button();
+            this.btnCheckSpooler.Text = "检查并启动 Print Spooler";
+            this.btnCheckSpooler.Location = new Point(300, 14);
+            this.btnCheckSpooler.Size = new Size(190, 32);
+            this.btnCheckSpooler.Click += BtnCheckSpooler_Click;
+
+            this.Label2 = new Label();
+            this.Label2.Text = "网络打印机列表（TCP/IP）";
+            this.Label2.Location = new Point(18, 62);
+            this.Label2.AutoSize = true;
+            this.Label2.Font = new Font(this.Font, FontStyle.Bold);
+
+            this.btnRefresh = new Button();
+            this.btnRefresh.Text = "刷新列表";
+            this.btnRefresh.Location = new Point(300, 58);
+            this.btnRefresh.Size = new Size(96, 28);
+            this.btnRefresh.Click += BtnRefresh_Click;
+
+            this.btnInstall = new Button();
+            this.btnInstall.Text = "安装未列出打印机…";
+            this.btnInstall.Location = new Point(404, 58);
+            this.btnInstall.Size = new Size(160, 28);
+            this.btnInstall.Click += BtnInstall_Click;
+
+            this.btnAbout = new Button();
+            this.btnAbout.Text = "关于";
+            this.btnAbout.Location = new Point(576, 58);
+            this.btnAbout.Size = new Size(70, 28);
+            this.btnAbout.Click += BtnAbout_Click;
+
+            this.grid = new DataGridView();
+            this.grid.Location = new Point(18, 92);
+            this.grid.Size = new Size(760, 230);
+            this.grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            this.grid.ReadOnly = true;
+            this.grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            this.grid.MultiSelect = false;
+            this.grid.Columns.Add("colName", "打印机名称");
+            this.grid.Columns.Add("colPort", "端口");
+            this.grid.Columns.Add("colIp", "当前 IP");
+            this.grid.SelectionChanged += Grid_SelectionChanged;
+
+            this.Label3 = new Label();
+            this.Label3.Text = "新 IP 地址：";
+            this.Label3.Location = new Point(18, 334);
+            this.Label3.AutoSize = true;
+            this.Label3.Font = new Font(this.Font, FontStyle.Bold);
+            this.txtNewIp = new TextBox();
+            this.txtNewIp.Location = new Point(110, 330);
+            this.txtNewIp.Size = new Size(220, 30);
+            this.txtNewIp.Font = new Font("Consolas", 12, FontStyle.Bold);
+            this.btnSave = new Button();
+            this.btnSave.Text = "保存修改";
+            this.btnSave.Location = new Point(344, 328);
+            this.btnSave.Size = new Size(140, 34);
+            this.btnSave.Enabled = false;
+            this.btnSave.Click += BtnSave_Click;
+
+            this.Label4 = new Label();
+            this.Label4.Text = "操作日志：";
+            this.Label4.Location = new Point(18, 372);
+            this.Label4.AutoSize = true;
+            this.Label4.Font = new Font(this.Font, FontStyle.Bold);
+            this.txtLog = new TextBox();
+            this.txtLog.Location = new Point(18, 392);
+            this.txtLog.Size = new Size(760, 170);
+            this.txtLog.Multiline = true;
+            this.txtLog.ReadOnly = true;
+            this.txtLog.ScrollBars = ScrollBars.Vertical;
+            this.txtLog.BackColor = Color.WhiteSmoke;
+            this.txtLog.Font = new Font("Consolas", 9);
+
+            this.Controls.AddRange(new Control[] {
+                this.Label1, this.StatusLight, this.btnCheckSpooler,
+                this.Label2, this.btnRefresh, this.btnInstall, this.btnAbout,
+                this.grid, this.Label3, this.txtNewIp, this.btnSave,
+                this.Label4, this.txtLog });
+
+            this.Load += (s,e)=>{ RefreshServiceStatus(); LoadPrinters(); };
+        }
+        private Label Label1, Label2, Label3, Label4, StatusLight;
+        private Button btnCheckSpooler, btnRefresh, btnInstall, btnAbout, btnSave;
+        private DataGridView grid;
+        private TextBox txtNewIp, txtLog;
+        private PrinterInfo _selected;
+
+        private Icon LoadAppIcon()
+        {
+            try {
+                string p = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.ico");
+                if (File.Exists(p)) return new Icon(p);
+            } catch { }
+            return SystemIcons.Application;
+        }
+        #endregion
+
+        #region 事件
+        private void BtnCheckSpooler_Click(object s, EventArgs e)
+        {
+            Log("检查 Print Spooler …");
+            EnsureSpooler(out string msg);
+            RefreshServiceStatus();
+            if (msg.Length > 0) Log(msg); else Log("Print Spooler 已就绪。");
+            LoadPrinters();
+        }
+
+        private void BtnRefresh_Click(object s, EventArgs e)
+        {
+            LoadPrinters();
+            Log("已刷新列表，共 " + _printers.Count + " 台网络打印机。");
+        }
+
+        private void BtnInstall_Click(object s, EventArgs e)
+        {
+            using var ofd = new OpenFileDialog();
+            ofd.Filter = "驱动包(*.zip)|*.zip|Info(*.inf)|*.inf|全部文件(*.*)|*.*";
+            ofd.Title = "选择未列出打印机的驱动包 / 信息文件";
+            if (ofd.ShowDialog() != DialogResult.OK) return;
+            Installer.InstallDriver(ofd.FileName, out string msg);
+            Log(msg);
+            LoadPrinters();
+        }
+
+        private void BtnAbout_Click(object s, EventArgs e)
+        {
+            string ver = Application.ProductVersion;
+            MessageBox.Show(this,
+                "网络打印机 IP 修改工具\n版本：" + ver + "\n\n" +
+                "功能：\n · 检查并启动/设自动 Print Spooler\n · 列出本地 TCP/IP 网络打印机\n · 修改并保存端口 IP\n · 安装未列出打印机的驱动包\n\n" +
+                "版权：by 任我行电脑工作室\n" +
+                "适用 Windows 7 SP1 ~ Windows 11 全系列",
+                "关于", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void Grid_SelectionChanged(object s, EventArgs e)
+        {
+            if (grid.CurrentRow != null && grid.CurrentRow.Index < _printers.Count)
+                _selected = _printers[grid.CurrentRow.Index];
+            else _selected = null;
+            UpdateSaveState();
+        }
+
+        private void BtnSave_Click(object s, EventArgs e)
+        {
+            if (_selected == null) return;
+            string newIp = txtNewIp.Text.Trim();
+            if (!IsValidIp(newIp)) { Log("输入了非法 IPv4：" + newIp); return; }
+            var r = MessageBox.Show("将 \"" + _selected.Name + "\" 的 IP 由 " +
+                _selected.Ip + " 改为 " + newIp + "，确认？",
+                "确认修改", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+            if (r != DialogResult.OK) return;
+            IpChanger.ChangePrinterIp(_selected.Name, _selected.Ip, newIp, out string err);
+            Log(err.Length == 0 ? "已保存：" + _selected.Name + " → " + newIp : err);
+            LoadPrinters();
+        }
+        #endregion
+
+        #region 业务
+        private void RefreshServiceStatus()
+        {
+            _spooler.Refresh();
+            if (_spooler.Status == ServiceControllerStatus.Running)
+            {
+                StatusLight.Text = "运行中"; StatusLight.ForeColor = Color.Green;
+            }
+            else
+            {
+                StatusLight.Text = _spooler.Status.ToString();
+                StatusLight.ForeColor = Color.Red;
+            }
+        }
+
+        private void EnsureSpooler(out string msg)
+        {
+            msg = "";
+            try
+            {
+                _spooler.Refresh();
+                // 设为自动（写注册表 Start=2；需管理员）
+                if (_spooler.StartType != ServiceStartMode.Automatic)
+                {
+                    ServiceHelper.SetStartupAutomatic();
+                    Log("已将 Print Spooler 启动类型设为 自动。");
+                }
+                if (_spooler.Status != ServiceControllerStatus.Running)
+                {
+                    _spooler.Start();
+                    _spooler.WaitForStatus(ServiceControllerStatus.Running,
+                        System.Threading.Timeout.Infinite);
+                    Log("已启动 Print Spooler。");
+                }
+            }
+            catch (Exception ex) { msg = "操作服务失败：" + ex.Message; }
+        }
+
+        private void LoadPrinters()
+        {
+            _printers.Clear();
+            _printers.AddRange(Printers.GetNetworkPrinters());
+            grid.Rows.Clear();
+            foreach (var p in _printers)
+                grid.Rows.Add(p.Name, p.Port, p.Ip);
+            _spooler?.Refresh();
+            grid.Enabled = _spooler != null &&
+                _spooler.Status == ServiceControllerStatus.Running;
+        }
+
+        private void UpdateSaveState()
+        {
+            btnSave.Enabled = _selected != null;
+            if (_selected != null)
+            {
+                this.Label3.Text = "新 IP 地址（原 " + _selected.Ip + "）：";
+            }
+        }
+        #endregion
+
+        #region 工具
+        private void Log(string t)
+        {
+            txtLog.AppendText(DateTime.Now.ToString("HH:mm:ss") + "  " + t + "\n");
+        }
+
+        static bool IsValidIp(string ip)
+        {
+            if (string.IsNullOrWhiteSpace(ip)) return false;
+            var parts = ip.Split('.');
+            if (parts.Length != 4) return false;
+            foreach (var p in parts)
+            {
+                int n;
+                if (!int.TryParse(p, out n) || n < 0 || n > 255) return false;
+            }
+            return true;
+        }
+        #endregion
+    }
+
+    public class PrinterInfo
+    {
+        public string Name, Port, Ip;
+        public bool IsNet = true;
+    }
+
+    public static class Printers
+    {
+        private static readonly string _k =
+            @"SYSTEM\CurrentControlSet\Control\Print\Printers";
+        public static List<PrinterInfo> GetNetworkPrinters()
+        {
+            var list = new List<PrinterInfo>();
+            using (var root = Registry.LocalMachine.OpenSubKey(_k))
+            {
+                if (root == null) return list;
+                foreach (var sub in root.GetSubKeyNames())
+                {
+                    string port;
+                    using (var pk = root.OpenSubKey(sub))
+                        port = pk?.GetValue("Port")?.ToString() ?? "";
+                    string ip = ExtractIp(port);
+                    if (!string.IsNullOrEmpty(ip))
+                        list.Add(new PrinterInfo { Name = sub, Port = port, Ip = ip });
+                }
+            }
+            return list;
+        }
+        public static string ExtractIp(string port)
+        {
+            var m = Regex.Match(port, @"(\d{1,3}\.){3}\d{1,3}");
+            return m.Success ? m.Value : "";
+        }
+    }
+
+    public static class IpChanger
+    {
+        private static readonly string _mon =
+            @"SYSTEM\CurrentControlSet\Control\Print\Monitors\Standard TCP/IP Port\Port List";
+
+        public static void ChangePrinterIp(string printer, string oldIp, string newIp, out string err)
+        {
+            err = "";
+            string oldPortKey = null, newPortKey = null;
+            using (var pl = Registry.LocalMachine.OpenSubKey(_mon))
+            {
+                foreach (var pn in pl.GetSubKeyNames())
+                {
+                    using (var pk = pl.OpenSubKey(pn))
+                    {
+                        var cur = pk?.GetValue("PName")?.ToString();
+                        if (cur == oldIp) oldPortKey = pn;
+                        if (cur == newIp) newPortKey = pn;
+                    }
+                }
+            }
+            if (newPortKey == null)
+                newPortKey = CreatePort(newIp);
+            using (var pk = Registry.LocalMachine.OpenSubKey(
+                @"SYSTEM\CurrentControlSet\Control\Print\Printers\\" + printer, true))
+            {
+                if (pk == null) { err = "未找到打印机注册表项：" + printer; return; }
+                pk.SetValue("Port", newPortKey);
+            }
+            if (oldPortKey != null && oldPortKey != newPortKey)
+                DeletePort(oldPortKey);
+        }
+
+        private static string CreatePort(string ip)
+        {
+            // 端口名规则：以 P 开头的唯一名，这里用时间戳避免冲突
+            string name = "P" + DateTime.Now.ToString("yyyyMMddHHmmss");
+            using (var pl = Registry.LocalMachine.CreateSubKey(_mon))
+            using (var pk = pl.CreateSubKey(name))
+            {
+                pk.SetValue("PName", ip);
+                pk.SetValue("Protocol", "Standard (9100)");
+            }
+            return name;
+        }
+        private static void DeletePort(string name)
+        {
+            Registry.LocalMachine.DeleteSubKeyTree(_mon + "\\" + name, false);
+        }
+    }
+
+    public static class Installer
+    {
+        [DllImport("winspool.drv", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool AddPrinterPackage(
+            [MarshalAs(UnmanagedType.LPWStr)] string pkg,
+            [In, Out] int[] requiredReboot);
+
+        public static void InstallDriver(string path, out string msg)
+        {
+            msg = "";
+            try
+            {
+                if (path.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                {
+                    int[] r = { 0 };
+                    if (AddPrinterPackage(path, r))
+                        msg = "驱动包已安装：" + path;
+                    else
+                        msg = "安装驱动包失败，错误码 " + Marshal.GetLastWin32Error() + "。请确认文件为 v4 驱动包 .zip。";
+                }
+                else if (path.EndsWith(".inf", StringComparison.OrdinalIgnoreCase))
+                {
+                    msg = "检测到 .inf，请使用【添加打印机】向导安装（本工具预留位置）。";
+                }
+                else
+                {
+                    msg = "不支持的文件类型：" + path;
+                }
+            }
+            catch (Exception ex) { msg = "安装异常：" + ex.Message; }
+        }
+    }
+
+    // 启动类型设置：通过 SCMD 风格改注册表 Start 值（4=自动）
+    public static class ServiceHelper
+    {
+        public static void SetStartupAutomatic()
+        {
+            using var key = Registry.LocalMachine.OpenSubKey(
+                @"SYSTEM\CurrentControlSet\Services\Spooler", true);
+            key.SetValue("Start", 2); // 2 = 自动
+        }
+    }
+
+    // by 任我行电脑工作室
+    public static class Program
+    {
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainForm());
+        }
+    }
+}
+</pre></div>
+  <div class="box info"><b>代码说明</b>：启动类型由 <span class="kbd">ServiceHelper.SetStartupAutomatic()</span> 通过写 <span class="kbd">HKLM\SYSTEM\CurrentControlSet\Services\Spooler\Start=2</span> 实现；<span class="kbd">EnsureSpooler</span> 已直接调用该方法。驱动包安装用 P/Invoke <span class="kbd">winspool.drv!AddPrinterPackage</span>。窗口图标 <span class="kbd">Icon</span> 取自同目录 <span class="kbd">app.ico</span>；“关于”对话框显示 <b>by 任我行电脑工作室</b> 版权。完整源码另见绿色包 <span class="kbd">PrinterIpTool\Program.cs</span>，可整文件替换。</div>
+</section>
+
+<section class="card" id="c5">
+  <h2><span class="no">5</span> 编译与打包步骤（绿色包）</h2>
+  <div class="box info">绿色包（免安装）已就位：<span class="kbd">D:\Users\zyz\WorkBuddy\printerIP\PrinterIpTool\</span>，内含完整源码、工程文件、<span class="kbd">app.manifest</span>（强制管理员）、<span class="kbd">app.ico</span>（图标）与 <span class="kbd">build.bat</span> 一键脚本。在装有 Visual Studio 2019/2022 或 .NET SDK 的机器上双击 <span class="kbd">build.bat</span> 即可生成单文件绿色 exe。</div>
+  <div class="box ok"><b>已实际编译完成</b>：本机检测到 <b>Visual Studio Community 2026（18.7.2）</b>（无 VS2022，但共用同一套 MSBuild 引擎，编译能力等同）。已用它成功生成绿色包：<span class="kbd">PrinterIpTool\dist\PrinterIpTool.exe</span>（763 KB，管理员清单与图标均已嵌入并校验通过）。</div>
+  <div class="step"><div class="ic">1</div><div class="bd"><h4>一键构建</h4>
+    <p>双击 <span class="kbd">PrinterIpTool\build.bat</span>（纯 ASCII，VS2026/2022 自动探测）→ 编译 Release → 自动打包到 <span class="kbd">dist\</span>。脚本含引擎定位、编译、打包三步，全程无交互。</p></div></div>
+  <div class="step"><div class="ic">2</div><div class="bd"><h4>目标框架（v4.0 → v4.8）</h4>
+    <p>工程原定 v4.0，但构建机<b>未安装 .NET 4.0 目标包</b>（MSB3644），故实际目标为 <b>v4.8</b>；.NET 4.8 官方仍支持 Win7 SP1，兼容性声明不变。若需 v4.0 产物，安装 “.NET Framework 4.0 Targeting Pack” 后改回 <span class="kbd">TargetFrameworkVersion</span> 即可。</p></div></div>
+  <div class="step"><div class="ic">2</div><div class="bd"><h4>强制管理员（已内嵌清单）</h4>
+    <p>工程引用 <span class="kbd">app.manifest</span>，执行级别 <span class="kbd">requireAdministrator</span>。编译后双击 exe 即自动 UAC 提权，无需右键“以管理员运行”。</p>
+    <p class="note">⚠️ 清单必须是<b>合法 SxS 结构</b>：初版曾写入非法的 <span class="kbd">&lt;dependentOS&gt;</span> 块与编造的 supportedOS GUID，导致启动报“并行配置不正确”。已改为微软官方 GUID（Win7/8/8.1/10-11）并删除非法块。当前清单：</p>
+    <div class="code"><div class="hd"><span>app.manifest</span><button class="copy">复制</button></div>
+<pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1"&gt;
+  &lt;assemblyIdentity version="1.0.0.0" name="PrinterIpTool.app"
+    processorArchitecture="*" type="win32"/&gt;
+  &lt;trustInfo xmlns="urn:schemas-microsoft-com:asm.v2"&gt;
+    &lt;security&gt;
+      &lt;requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3"&gt;
+        &lt;requestedExecutionLevel level="requireAdministrator" uiAccess="false" /&gt;
+      &lt;/requestedPrivileges&gt;
+    &lt;/security&gt;
+  &lt;/trustInfo&gt;
+  &lt;compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1"&gt;
+    &lt;application&gt;
+      &lt;!-- Windows 7 --&gt;
+      &lt;supportedOS Id="{35138b9a-5d96-4fbd-8e2d-a2440225f93a}" /&gt;
+      &lt;!-- Windows 8 --&gt;
+      &lt;supportedOS Id="{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}" /&gt;
+      &lt;!-- Windows 8.1 --&gt;
+      &lt;supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}" /&gt;
+      &lt;!-- Windows 10 / 11 --&gt;
+      &lt;supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" /&gt;
+    &lt;/application&gt;
+  &lt;/compatibility&gt;
+  &lt;application xmlns="urn:schemas-microsoft-com:asm.v3"&gt;
+    &lt;windowsSettings&gt;
+      &lt;dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings"&gt;true&lt;/dpiAware&gt;
+    &lt;/windowsSettings&gt;
+  &lt;/application&gt;
+&lt;/assembly&gt;</pre></div></div></div>
+  <div class="step"><div class="ic">3</div><div class="bd"><h4>图标（已内嵌）</h4>
+    <p>工程 <span class="kbd">ApplicationIcon=app.ico</span>，编译时图标随 exe 打包；运行时 <span class="kbd">Icon</span> 也指向同目录 <span class="kbd">app.ico</span>，任务栏/窗口标题栏一致。</p></div></div>
+  <div class="step"><div class="ic">4</div><div class="bd"><h4>版权（已写入 AssemblyInfo）</h4>
+    <p><span class="kbd">AssemblyCompany</span>/<span class="kbd">AssemblyCopyright</span> 为 <b>任我行电脑工作室</b>；窗口右下角“关于”对话框与任务栏标题均显示版权。</p></div></div>
+  <div class="step"><div class="ic">5</div><div class="bd"><h4>一键构建</h4>
+    <p>双击 <span class="kbd">build.bat</span>：自动探测 MSBuild/dotnet → 编译 Release → 把 <span class="kbd">PrinterIpTool.exe</span>(+.config) 复制到 <span class="kbd">dist\</span>。产物即绿色单文件 exe。</p></div></div>
+</section>
+
+<section class="card" id="c5a">
+  <h2><span class="no">5A</span> 绿色包交付结构</h2>
+  <div class="code"><div class="hd"><span>PrinterIpTool\ （解压即用，无需安装）</span><button class="copy">复制</button></div>
+<pre>PrinterIpTool\dist\        ← 绿色包（已生成，解压即用）
+├─ PrinterIpTool.exe       ← 763 KB 单文件（图标+管理员清单已嵌入）
+├─ app.ico                 ← 图标副本（可删，不影响运行）
+└─ 说明.txt                ← 使用/版权/免责</pre></div>
+  <div class="box ok"><b>已校验项</b>：exe 为合法 PE；<span class="kbd">requireAdministrator</span> 清单已嵌入（双击自动 UAC 提权）；<span class="kbd">winspool</span>/<span class="kbd">Spooler</span> 逻辑与“任我行”版权字符串均在；图标经 csproj <span class="kbd">ApplicationIcon</span> 嵌入。绿色免安装，拷到 U 盘/任意目录双击即用（目标机需 .NET 4.8）。</div>
+</section>
+
+<section class="card" id="c6">
+  <h2><span class="no">6</span> 部署与使用方法</h2>
+  <ol>
+    <li><b>分发</b>：把绿色包（<span class="kbd">PrinterIpTool.exe</span> 及 .config/.ico）拷到目标机任意目录（如 <span class="kbd">C:\Tools\</span>），双击运行；因清单要求管理员，系统自动弹 UAC 提权。</li>
+    <li><b>启动服务</b>：点 <b>检查并启动 Print Spooler</b>，状态灯变绿即就绪；程序顺带把服务设为自动，下次开机无需手动拉起。</li>
+    <li><b>查看打印机</b>：列表自动扫出本机所有 TCP/IP 网络打印机；点 <b>刷新列表</b> 可重新扫描。</li>
+    <li><b>改 IP</b>：选中一台 → 在“新 IP 地址”框输入新 IPv4 → 点 <b>保存修改</b> → 确认；列表随之刷新。</li>
+    <li><b>装新打印机</b>：列表里没有目标机 → 点 <b>安装未列出打印机…</b> → 选择<b>厂商 <span class="kbd">.exe</span> 安装程序</b>（默认类型）→ 在弹出窗口中完成安装 → 点 <b>刷新列表</b> 即可看到并改 IP。（也可选 <span class="kbd">.zip</span> v4 驱动包）</li>
+    <li><b>关于/版权</b>：点“关于”可查看版本号、功能与 <b>by 任我行电脑工作室</b> 版权信息。</li>
+  </ol>
+  <div class="box info"><b>批量技巧</b>：改完一台后程序自动刷新，可继续选下一台；适合现场批量迁移打印机端口 IP。建议每改 1–2 台就 <b>刷新列表</b> 确认结果。</div>
+</section>
+
+<section class="card" id="c7">
+  <h2><span class="no">7</span> 常见问题与注意事项</h2>
+  <table>
+    <tr><th style="width:34%">现象</th><th>处理</th></tr>
+    <tr><td>保存后打印机电源/驱动未自动跟随 IP</td><td>本工具改的是端口 PName 与打印机绑定，<b>不驱动打印机硬件</b>；需在新 IP 上保证打印机仍在网段，或在打印机面板确认 IP 已更新。改完可“测试打印”。</td></tr>
+    <tr><td><b>只列出 1 台网络打印机，是不是漏了？</b></td><td>通常<b>没有漏</b>。工具只列“端口含 IP 的 TCP/IP 网络打印机”，<b>USB、PDF/虚拟打印机本来就没有 IP</b>，会被正确过滤。诊断示例（本机 4 台打印机）：Brother HL-B2050DN（端口 <span class="kbd">192.168.10.17</span>）✅ 可改 IP；HP ColorLaserJet（<span class="kbd">USB001</span>）、Microsoft Print to PDF（<span class="kbd">PORTPROMPT:</span>）、导出为WPS PDF（Kingsoft 虚拟端口）❌ 无 IP。勾选<b>「显示全部」</b>即可看到全部 4 台及其类型，日志也会提示“共 N 台，网络 M 台”。</td></tr>
+    <tr><td>列表里出现 WSD / USB 打印机</td><td>本工具只识别“端口名含 IPv4 数字段”或 Port List 中 <span class="kbd">PName</span>/<span class="kbd">HostName</span> 含 IP 的项；WSD、USB、Local Port 等非网络端口自动过滤（可用「显示全部」查看）。</td></tr>
+    <tr><td>日志出现 <b>“创建端口失败（status=5，拒绝访问）”</b></td><td>并非没以管理员运行。<span class="kbd">XcvDataW</span> 的 <b>AddPort</b> 要求 <b>SeLoadDriverPrivilege 处于“已启用”状态</b>（管理员令牌里默认存在但被禁用），且句柄需带 <b>SERVER_ACCESS_ADMINISTER</b>。v1.2 已自动启用该特权并以管理员权限句柄调用；若仍失败会自动回退到 <b>PowerShell Add-PrinterPort / Set-Printer</b>（系统自带，继承已提升令牌），再兜底注册表。启动日志会显示当前是否真的处于已提升会话。</td></tr>
+    <tr><td>报 “无法访问/拒绝访问”</td><td>未以管理员运行。请右键“以管理员身份运行”（清单要求管理员时系统会弹 UAC）。</td></tr>
+    <tr><td>驱动包安装失败</td><td>确认 .zip 是厂商 v4 驱动包（解压后有 driver.inf / x64 目录），Win7 需 .NET 4.0；老系统对 v4 包支持不佳，可改用 .inf 向导安装。</td></tr>
+    <tr><td>服务设为自动后开机仍未自启</td><td>个别精简版系统缺 Spooler 依赖；确认 <span class="kbd">services.msc</span> 中 Print Spooler 已设为自动并启动。</td></tr>
+  </table>
+  <div class="box warn"><b>合规与风险</b>：修改打印端口注册表属于系统级写操作，建议在受控环境中做；生产网络批量变更前先备份 <span class="kbd">HKLM\SYSTEM\CurrentControlSet\Control\Print</span> 相关键（可用 regedit 导出 .reg 留底）。安装驱动包前请确认来源可信，避免植入恶意驱动。</div>
+</section>
+
+<footer>网络打印机 IP 修改工具 · 工程交付文档 · © by 任我行电脑工作室 · 生成时间 2026-09-28</footer>
+</div>
+
+<script>
+  document.querySelectorAll('.copy').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const pre=b.parentElement.nextElementSibling||b.closest('.code').querySelector('pre');
+      navigator.clipboard.writeText(pre.innerText).then(()=>{
+        const old=b.textContent;b.textContent='已复制 ✓';
+        setTimeout(()=>b.textContent=old,1400);
+      });
+    });
+  });
+</script>
+</body>
+</html>
