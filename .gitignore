@@ -11,3 +11,7 @@ obj/
 
 # 手动复制的旧副本（形如 "xxx - 副本.exe"）
 dist/*- *.exe
+
+# 本地 GitHub 令牌（绝不入库）
+gh_token.txt
+open-token.bat
