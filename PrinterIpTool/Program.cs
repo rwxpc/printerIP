@@ -45,7 +45,7 @@ namespace PrinterIpTool
         #region 界面布局
         private void InitializeComponent()
         {
-            this.Text = "网络打印机 IP 修改工具";
+            this.Text = "网络打印机 IP 修改工具 - 开发者：任我行电脑工作室 微信号：RWXPC8";
             this.Size = new Size(662, 470);
             // 禁止调整窗口大小：固定单线边框 + 禁用最大化 + 锁定最小/最大尺寸
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -224,7 +224,6 @@ namespace PrinterIpTool
         #region 事件
         private void MainForm_Load(object s, EventArgs e)
         {
-            ShowStartupNotice();
             Log("程序启动，正在检查 Print Spooler …");
             Log(TokenPrivilege.IsElevated()
                 ? "✓ 权限检查：当前处于已提升的管理员会话。"
@@ -239,48 +238,6 @@ namespace PrinterIpTool
             if (msg.Length > 0) Log("⚠ " + msg);
             else Log("✓ 就绪：启动类型 " + StartTypeText() + "，状态 " + StatusLight.Text + "。");
             LoadPrinters();
-        }
-
-        /// <summary>启动时的提示弹窗：点「确认」关闭后进入主界面</summary>
-        private void ShowStartupNotice()
-        {
-            using (var dlg = new Form())
-            {
-                dlg.Text = "提示";
-                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
-                dlg.StartPosition = FormStartPosition.CenterScreen;
-                dlg.Size = new Size(520, 200);
-                dlg.MinimizeBox = false;
-                dlg.MaximizeBox = false;
-                dlg.ShowInTaskbar = false;
-                dlg.Icon = this.Icon;
-                dlg.BackColor = Color.White;
-
-                var pic = new PictureBox();
-                pic.Image = SystemIcons.Information.ToBitmap();
-                pic.Location = new Point(24, 30);
-                pic.Size = new Size(32, 32);
-                pic.SizeMode = PictureBoxSizeMode.StretchImage;
-
-                var lab = new Label();
-                lab.Text = "提示：请根据本办公室的打印机型号及 ip 进行修改。";
-                lab.Location = new Point(74, 30);
-                lab.Size = new Size(410, 60);
-                lab.Font = new Font("微软雅黑", 11F, FontStyle.Regular);
-                lab.ForeColor = Color.FromArgb(30, 30, 30);
-                lab.TextAlign = ContentAlignment.TopLeft;
-
-                var btn = new Button();
-                btn.Text = "确认";
-                btn.Size = new Size(110, 34);
-                btn.Location = new Point(200, 110);
-                btn.Font = new Font("微软雅黑", 10F, FontStyle.Regular);
-                btn.Click += (s, e) => dlg.Close();
-
-                dlg.Controls.AddRange(new Control[] { pic, lab, btn });
-                dlg.AcceptButton = btn;
-                dlg.ShowDialog(this);
-            }
         }
 
         private void BtnCheckSpooler_Click(object s, EventArgs e)
