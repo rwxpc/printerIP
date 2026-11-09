@@ -20,6 +20,7 @@ namespace PrinterIpTool
         private ServiceController _spooler;
         private readonly List<PrinterInfo> _printers = new List<PrinterInfo>();
         private bool _loading;
+        private string _statusText = "未检测";   // 不带圆点的纯状态文本，供日志引用
 
         public MainForm()
         {
@@ -55,132 +56,216 @@ namespace PrinterIpTool
             this.MaximumSize = this.Size;
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Icon = LoadAppIcon();
+            this.BackColor = ColBg;
+            this.Font = new Font("微软雅黑", 9F);
             this.Load += MainForm_Load;
 
-            // 服务区：运行状态 + 启动类型（自动=绿 / 手动=蓝 / 禁用=红）
+            // ── 服务状态行：弱化标签，突出彩色状态 ──
             this.Label1 = new Label();
-            this.Label1.Text = "Print Spooler：";
+            this.Label1.Text = "Print Spooler 服务";
             this.Label1.Location = new Point(16, 18);
             this.Label1.AutoSize = true;
-            this.Label1.Font = new Font(this.Font, FontStyle.Bold);
+            this.Label1.ForeColor = ColMuted;
             this.StatusLight = new Label();
-            this.StatusLight.Text = "未检测";
-            this.StatusLight.Location = new Point(122, 18);
+            this.StatusLight.Text = "● 未检测";
+            this.StatusLight.Location = new Point(140, 17);
             this.StatusLight.AutoSize = true;
-            this.StatusLight.Font = new Font(this.Font, FontStyle.Bold);
+            this.StatusLight.Font = new Font("微软雅黑", 9.75F, FontStyle.Bold);
             this.lblStartType = new Label();
             this.lblStartType.Text = "启动类型：未检测";
-            this.lblStartType.Location = new Point(190, 18);
+            this.lblStartType.Location = new Point(248, 18);
             this.lblStartType.AutoSize = true;
-            this.lblStartType.Font = new Font(this.Font, FontStyle.Bold);
-            this.lblStartType.ForeColor = Color.DimGray;
+            this.lblStartType.ForeColor = ColMuted;
             this.btnCheckSpooler = new Button();
             this.btnCheckSpooler.Text = "检查并启动服务";
-            this.btnCheckSpooler.Location = new Point(452, 14);
-            this.btnCheckSpooler.Size = new Size(150, 30);
+            this.btnCheckSpooler.Location = new Point(480, 12);
+            StyleButton(this.btnCheckSpooler, false, 150, 32);
             this.btnCheckSpooler.Click += BtnCheckSpooler_Click;
 
-            // 列表区
+            // ── 列表区：标题在左，操作按钮统一靠右，勾选项跟在标题后 ──
             this.Label2 = new Label();
-            this.Label2.Text = "本地打印机列表";
-            this.Label2.Location = new Point(16, 58);
+            this.Label2.Text = "打印机列表";
+            this.Label2.Location = new Point(16, 57);
             this.Label2.AutoSize = true;
-            this.Label2.Font = new Font(this.Font, FontStyle.Bold);
+            this.Label2.Font = new Font("微软雅黑", 9.75F, FontStyle.Bold);
+            this.Label2.ForeColor = ColInk;
+            this.chkShowAll = new CheckBox();
+            this.chkShowAll.Text = "显示全部（含 USB/虚拟）";
+            this.chkShowAll.Location = new Point(118, 57);
+            this.chkShowAll.AutoSize = true;
+            this.chkShowAll.ForeColor = ColMuted;
+            this.chkShowAll.CheckedChanged += (s, e) => LoadPrinters();
             this.btnRefresh = new Button();
             this.btnRefresh.Text = "刷新列表";
-            this.btnRefresh.Location = new Point(128, 54);
-            this.btnRefresh.Size = new Size(84, 26);
+            this.btnRefresh.Location = new Point(338, 53);
+            StyleButton(this.btnRefresh, false, 84, 30);
             this.btnRefresh.Click += BtnRefresh_Click;
             this.btnInstall = new Button();
             this.btnInstall.Text = "安装未列出打印机…";
-            this.btnInstall.Location = new Point(218, 54);
-            this.btnInstall.Size = new Size(130, 26);
+            this.btnInstall.Location = new Point(428, 53);
+            StyleButton(this.btnInstall, false, 140, 30);
             this.btnInstall.Click += BtnInstall_Click;
             this.btnAbout = new Button();
             this.btnAbout.Text = "关于";
-            this.btnAbout.Location = new Point(354, 54);
-            this.btnAbout.Size = new Size(56, 26);
+            this.btnAbout.Location = new Point(574, 53);
+            StyleButton(this.btnAbout, false, 56, 30);
             this.btnAbout.Click += BtnAbout_Click;
-            this.chkShowAll = new CheckBox();
-            this.chkShowAll.Text = "显示全部（含USB/虚拟）";
-            this.chkShowAll.Location = new Point(416, 58);
-            this.chkShowAll.Size = new Size(160, 22);
-            this.chkShowAll.CheckedChanged += (s, e) => LoadPrinters();
 
+            // ── 表格：白卡片 + 1px 描边容器，去原生行头与蓝色选中 ──
             this.grid = new DataGridView();
-            this.grid.Location = new Point(16, 86);
-            this.grid.Size = new Size(607, 172);
+            this.grid.Dock = DockStyle.Fill;
+            this.grid.BorderStyle = BorderStyle.None;
             this.grid.ReadOnly = true;
             this.grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             this.grid.MultiSelect = false;
             this.grid.AllowUserToAddRows = false;
+            this.grid.AllowUserToResizeRows = false;
+            this.grid.RowHeadersVisible = false;
             this.grid.BackgroundColor = Color.White;
-            this.grid.RowHeadersWidth = 24;
+            this.grid.GridColor = Color.FromArgb(228, 233, 240);
+            this.grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            this.grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
+            this.grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            this.grid.ColumnHeadersHeight = 34;
+            this.grid.EnableHeadersVisualStyles = false;
+            this.grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(237, 241, 247);
+            this.grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(58, 70, 86);
+            this.grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.FromArgb(237, 241, 247);
+            this.grid.ColumnHeadersDefaultCellStyle.Font = new Font("微软雅黑", 9F, FontStyle.Bold);
+            this.grid.RowTemplate.Height = 32;
+            this.grid.DefaultCellStyle.BackColor = Color.White;
+            this.grid.DefaultCellStyle.ForeColor = ColInk;
+            this.grid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(222, 233, 255);
+            this.grid.DefaultCellStyle.SelectionForeColor = Color.FromArgb(27, 58, 139);
+            this.grid.DefaultCellStyle.Padding = new Padding(5, 0, 5, 0);
+            this.grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(250, 251, 253);
+            this.grid.AlternatingRowsDefaultCellStyle.SelectionBackColor = Color.FromArgb(222, 233, 255);
+            this.grid.AlternatingRowsDefaultCellStyle.SelectionForeColor = Color.FromArgb(27, 58, 139);
             this.grid.Columns.Add("colName", "打印机名称");
             this.grid.Columns.Add("colPort", "端口");
             this.grid.Columns.Add("colIp", "当前 IP");
             this.grid.Columns.Add("colType", "类型");
             this.grid.Columns.Add("colDefault", "默认");
-            this.grid.Columns["colName"].Width = 232;
+            this.grid.Columns["colName"].Width = 230;
             this.grid.Columns["colPort"].Width = 105;
-            this.grid.Columns["colIp"].Width = 90;
+            this.grid.Columns["colIp"].Width = 115;
             this.grid.Columns["colType"].Width = 90;
-            this.grid.Columns["colDefault"].Width = 50;
+            this.grid.Columns["colDefault"].Width = 52;
+            this.grid.Columns["colPort"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            this.grid.Columns["colIp"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            this.grid.Columns["colType"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            this.grid.Columns["colDefault"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            this.grid.Columns["colDefault"].DefaultCellStyle.ForeColor = ColAccent;
             this.grid.SelectionChanged += Grid_SelectionChanged;
+            var gridPanel = new Panel();
+            gridPanel.Location = new Point(16, 90);
+            gridPanel.Size = new Size(614, 166);
+            gridPanel.BackColor = ColBorder;
+            gridPanel.Padding = new Padding(1);
+            gridPanel.Controls.Add(this.grid);
 
-            // IP 修改区：标签与输入框拉开足够距离，避免长标签被截断
+            // ── IP 修改区：输入框加宽，主操作用品牌色实心按钮 ──
             this.Label3 = new Label();
             this.Label3.Text = "新 IP 地址：";
-            this.Label3.Location = new Point(16, 270);
+            this.Label3.Location = new Point(16, 275);
             this.Label3.AutoSize = true;
-            this.Label3.Font = new Font(this.Font, FontStyle.Bold);
+            this.Label3.Font = new Font("微软雅黑", 9.75F, FontStyle.Bold);
+            this.Label3.ForeColor = ColInk;
             this.txtNewIp = new TextBox();
-            this.txtNewIp.Location = new Point(240, 266);
-            this.txtNewIp.Size = new Size(130, 28);
-            this.txtNewIp.Font = new Font("Segoe UI", 11F);
+            this.txtNewIp.Location = new Point(250, 269);
+            this.txtNewIp.Size = new Size(136, 28);
+            this.txtNewIp.Font = new Font("微软雅黑", 10.5F);
             this.txtNewIp.MaxLength = 15;
             this.btnApplyIp = new Button();
             this.btnApplyIp.Text = "保存修改";
-            this.btnApplyIp.Location = new Point(380, 264);
-            this.btnApplyIp.Size = new Size(110, 32);
+            this.btnApplyIp.Location = new Point(396, 267);
+            StyleButton(this.btnApplyIp, true, 104, 34);
             this.btnApplyIp.Enabled = false;
             this.btnApplyIp.Click += BtnSave_Click;
             this.btnDefault = new Button();
             this.btnDefault.Text = "设为默认打印机";
-            this.btnDefault.Location = new Point(498, 264);
-            this.btnDefault.Size = new Size(124, 32);
+            this.btnDefault.Location = new Point(506, 267);
+            StyleButton(this.btnDefault, false, 124, 34);
             this.btnDefault.Enabled = false;
             this.btnDefault.Click += BtnDefault_Click;
 
-            // 日志区：只保留最新 4 条，窗口可以更紧凑
+            // ── 日志区：深色终端风，按 ✓ / ⚠ 分色 ──
             this.Label4 = new Label();
-            this.Label4.Text = "操作日志（最新 4 条）：";
-            this.Label4.Location = new Point(16, 308);
+            this.Label4.Text = "操作日志（最新 4 条）";
+            this.Label4.Location = new Point(16, 313);
             this.Label4.AutoSize = true;
-            this.Label4.Font = new Font(this.Font, FontStyle.Bold);
-            this.txtLog = new TextBox();
-            this.txtLog.Location = new Point(16, 328);
-            this.txtLog.Size = new Size(607, 82);
-            this.txtLog.Multiline = true;
+            this.Label4.Font = new Font("微软雅黑", 9.75F, FontStyle.Bold);
+            this.Label4.ForeColor = ColInk;
+            this.txtLog = new RichTextBox();
+            this.txtLog.Location = new Point(16, 335);
+            this.txtLog.Size = new Size(614, 78);
             this.txtLog.ReadOnly = true;
-            this.txtLog.ScrollBars = ScrollBars.Vertical;
+            this.txtLog.BorderStyle = BorderStyle.None;
+            this.txtLog.BackColor = ColLogBg;
+            this.txtLog.ForeColor = ColLogBody;
+            this.txtLog.Font = new Font("微软雅黑", 9F);
+            this.txtLog.ScrollBars = RichTextBoxScrollBars.Vertical;
             this.txtLog.WordWrap = true;
-            this.txtLog.BackColor = Color.WhiteSmoke;
-            this.txtLog.Font = new Font("Segoe UI", 9F);
 
             this.Controls.AddRange(new Control[] {
                 this.Label1, this.StatusLight, this.lblStartType, this.btnCheckSpooler,
                 this.Label2, this.btnRefresh, this.btnInstall, this.btnAbout, this.chkShowAll,
-                this.grid,
+                gridPanel,
                 this.Label3, this.txtNewIp, this.btnApplyIp, this.btnDefault,
                 this.Label4, this.txtLog });
+        }
+
+        // ── 设计令牌：统一色板，一处改动全局生效 ──
+        private static readonly Color ColBg = Color.FromArgb(244, 246, 250);
+        private static readonly Color ColInk = Color.FromArgb(43, 52, 64);
+        private static readonly Color ColMuted = Color.FromArgb(107, 118, 132);
+        private static readonly Color ColBorder = Color.FromArgb(216, 223, 233);
+        private static readonly Color ColAccent = Color.FromArgb(47, 111, 237);
+        private static readonly Color ColAccentHover = Color.FromArgb(35, 89, 198);
+        private static readonly Color ColAccentDown = Color.FromArgb(28, 74, 168);
+        private static readonly Color ColOk = Color.FromArgb(30, 142, 62);
+        private static readonly Color ColWarn = Color.FromArgb(183, 121, 31);
+        private static readonly Color ColDanger = Color.FromArgb(197, 48, 48);
+        private static readonly Color ColInfo = Color.FromArgb(29, 111, 191);
+        private static readonly Color ColLogBg = Color.FromArgb(32, 40, 54);
+        private static readonly Color ColLogBody = Color.FromArgb(201, 212, 230);
+        private static readonly Color ColLogTime = Color.FromArgb(135, 148, 168);
+        private static readonly Color ColLogOk = Color.FromArgb(140, 217, 160);
+        private static readonly Color ColLogWarn = Color.FromArgb(240, 194, 75);
+
+        /// <summary>统一按钮风格：主操作品牌蓝实心，次操作白底描边，含悬停/按下反馈</summary>
+        private static void StyleButton(Button b, bool primary, int w, int h)
+        {
+            b.Size = new Size(w, h);
+            b.FlatStyle = FlatStyle.Flat;
+            b.Font = new Font("微软雅黑", 9F);
+            b.Cursor = Cursors.Hand;
+            b.UseVisualStyleBackColor = false;
+            if (primary)
+            {
+                b.BackColor = ColAccent;
+                b.ForeColor = Color.White;
+                b.FlatAppearance.BorderSize = 0;
+                b.FlatAppearance.MouseOverBackColor = ColAccentHover;
+                b.FlatAppearance.MouseDownBackColor = ColAccentDown;
+            }
+            else
+            {
+                b.BackColor = Color.White;
+                b.ForeColor = ColInk;
+                b.FlatAppearance.BorderSize = 1;
+                b.FlatAppearance.BorderColor = ColBorder;
+                b.FlatAppearance.MouseOverBackColor = Color.FromArgb(238, 242, 248);
+                b.FlatAppearance.MouseDownBackColor = Color.FromArgb(223, 231, 243);
+            }
         }
 
         private Label Label1, Label2, Label3, Label4, StatusLight, lblStartType;
         private Button btnCheckSpooler, btnRefresh, btnInstall, btnAbout, btnApplyIp, btnDefault;
         private CheckBox chkShowAll;
         private DataGridView grid;
-        private TextBox txtNewIp, txtLog;
+        private TextBox txtNewIp;
+        private RichTextBox txtLog;
         private PrinterInfo _selected;
 
         /// <summary>
@@ -231,12 +316,12 @@ namespace PrinterIpTool
 
             // 先刷新一次，显示系统里真实的原始启动类型（这时还没做任何改动）
             RefreshServiceStatus();
-            Log("检测到 Print Spooler 启动类型：" + StartTypeText() + "，当前状态：" + StatusLight.Text);
+            Log("检测到 Print Spooler 启动类型：" + StartTypeText() + "，当前状态：" + _statusText);
 
             EnsureSpooler(out string msg);
             RefreshServiceStatus();   // 修正后再刷新（通常会变为「自动」）
             if (msg.Length > 0) Log("⚠ " + msg);
-            else Log("✓ 就绪：启动类型 " + StartTypeText() + "，状态 " + StatusLight.Text + "。");
+            else Log("✓ 就绪：启动类型 " + StartTypeText() + "，状态 " + _statusText + "。");
             LoadPrinters();
         }
 
@@ -364,25 +449,28 @@ namespace PrinterIpTool
 
         private void RefreshServiceStatus()
         {
-            // 运行状态
+            // 运行状态（圆点 + 加粗彩色）
             try
             {
                 _spooler.Refresh();
                 if (_spooler.Status == ServiceControllerStatus.Running)
                 {
-                    StatusLight.Text = "运行中";
-                    StatusLight.ForeColor = Color.Green;
+                    _statusText = "运行中";
+                    StatusLight.Text = "● 运行中";
+                    StatusLight.ForeColor = ColOk;
                 }
                 else
                 {
-                    StatusLight.Text = "已停止";
-                    StatusLight.ForeColor = Color.Red;
+                    _statusText = "已停止";
+                    StatusLight.Text = "● 已停止";
+                    StatusLight.ForeColor = ColDanger;
                 }
             }
             catch
             {
-                StatusLight.Text = "无法读取";
-                StatusLight.ForeColor = Color.OrangeRed;
+                _statusText = "无法读取";
+                StatusLight.Text = "● 无法读取";
+                StatusLight.ForeColor = ColWarn;
             }
 
             // 启动类型：自动（绿）/ 手动（蓝）/ 禁用（红）
@@ -393,26 +481,26 @@ namespace PrinterIpTool
                 {
                     case ServiceStartMode.Automatic:
                         lblStartType.Text = "启动类型：自动";
-                        lblStartType.ForeColor = Color.Green;
+                        lblStartType.ForeColor = ColOk;
                         break;
                     case ServiceStartMode.Manual:
                         lblStartType.Text = "启动类型：手动";
-                        lblStartType.ForeColor = Color.Blue;
+                        lblStartType.ForeColor = ColInfo;
                         break;
                     case ServiceStartMode.Disabled:
                         lblStartType.Text = "启动类型：禁用";
-                        lblStartType.ForeColor = Color.Red;
+                        lblStartType.ForeColor = ColDanger;
                         break;
                     default:   // Boot / System：系统引导即启动，按「自动」口径显示
                         lblStartType.Text = "启动类型：" + _spooler.StartType;
-                        lblStartType.ForeColor = Color.Green;
+                        lblStartType.ForeColor = ColOk;
                         break;
                 }
             }
             catch
             {
                 lblStartType.Text = "启动类型：无法读取";
-                lblStartType.ForeColor = Color.OrangeRed;
+                lblStartType.ForeColor = ColWarn;
             }
         }
 
@@ -541,16 +629,39 @@ namespace PrinterIpTool
         #region 工具
         // 操作日志只保留最新 4 条，界面更紧凑
         private const int MaxLogLines = 4;
-        private readonly Queue<string> _logLines = new Queue<string>(MaxLogLines);
+        private struct LogEntry { public string Time; public string Text; }
+        private readonly Queue<LogEntry> _logEntries = new Queue<LogEntry>(MaxLogLines);
 
         private void Log(string t)
         {
-            _logLines.Enqueue(DateTime.Now.ToString("HH:mm:ss") + "  " + t);
-            while (_logLines.Count > MaxLogLines) _logLines.Dequeue();
+            _logEntries.Enqueue(new LogEntry { Time = DateTime.Now.ToString("HH:mm:ss"), Text = t });
+            while (_logEntries.Count > MaxLogLines) _logEntries.Dequeue();
+            RenderLog();
+        }
 
-            txtLog.Text = string.Join(Environment.NewLine, _logLines.ToArray());
+        /// <summary>深色终端风渲染：时间戳弱化，✓ 绿 / ⚠ 黄，其余正文色</summary>
+        private void RenderLog()
+        {
+            txtLog.Clear();
+            foreach (LogEntry e in _logEntries)
+            {
+                AppendLog(e.Time + "  ", ColLogTime);
+                Color c = e.Text.Length > 0 && e.Text[0] == '⚠' ? ColLogWarn
+                        : e.Text.Length > 0 && e.Text[0] == '✓' ? ColLogOk
+                        : ColLogBody;
+                AppendLog(e.Text, c);
+                AppendLog("\n", ColLogBody);
+            }
             txtLog.SelectionStart = txtLog.TextLength;
             txtLog.ScrollToCaret();
+        }
+
+        private void AppendLog(string s, Color c)
+        {
+            txtLog.SelectionStart = txtLog.TextLength;
+            txtLog.SelectionLength = 0;
+            txtLog.SelectionColor = c;
+            txtLog.AppendText(s);
         }
 
         static bool IsValidIp(string ip)
